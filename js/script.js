@@ -24,58 +24,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Fixed visitor counter - counts unique sessions only
+    // Simple visitor counter (GitHub Pages compatible)
     function initVisitorCounter() {
         const counterElement = document.getElementById('visitorCount');
         if (!counterElement) return;
 
-        try {
-            // Generate a unique session ID for this visit
-            const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        let visitCount = parseInt(localStorage.getItem('visitCount') || '0');
+        let uniqueVisit = !localStorage.getItem('hasVisited');
+        
+        if (uniqueVisit) {
+            visitCount++;
+            localStorage.setItem('visitCount', visitCount.toString());
+            localStorage.setItem('hasVisited', 'true');
             
-            // Check if we've already counted this session
-            const countedSessions = JSON.parse(localStorage.getItem('countedSessions') || '[]');
-            const currentSessionKey = window.location.hostname + '_session';
-            
-            // Get current total count
-            let totalCount = parseInt(localStorage.getItem('totalVisitCount') || '0');
-            
-            // Check if this is a new session (not counted in the last 24 hours)
-            const lastCounted = sessionStorage.getItem(currentSessionKey);
-            const twentyFourHours = 24 * 60 * 60 * 1000;
-            const now = Date.now();
-            
-            if (!lastCounted || (now - parseInt(lastCounted)) > twentyFourHours) {
-                // New session - increment count
-                totalCount++;
-                
-                // Update storage
-                localStorage.setItem('totalVisitCount', totalCount.toString());
-                sessionStorage.setItem(currentSessionKey, now.toString());
-                
-                // Keep track of counted sessions (limit to last 1000 to prevent storage bloat)
-                countedSessions.push({sessionId, timestamp: now});
-                const recentSessions = countedSessions.filter(session => 
-                    (now - session.timestamp) < (30 * 24 * 60 * 60 * 1000) // Keep for 30 days
-                ).slice(-1000);
-                localStorage.setItem('countedSessions', JSON.stringify(recentSessions));
-                
-                console.log('New session counted. Total:', totalCount);
-            } else {
-                console.log('Session already counted today.');
-            }
-            
-            // Display the count
-            counterElement.textContent = totalCount.toLocaleString();
-            
-        } catch (error) {
-            console.warn('Visitor counter error:', error);
-            // Fallback: show a static reasonable number
-            counterElement.textContent = '1,234';
+            // Log new visit (for debugging)
+            console.log('New visitor! Total visits:', visitCount);
         }
+        
+        counterElement.textContent = visitCount.toLocaleString();
+        
+        // Optional: Log current stats
+        console.log('Current visitor count:', visitCount);
     }
 
-    // Initialize functions
+    // Initialize all functions
     updateLastUpdated();
     initVisitorCounter();
 
@@ -138,10 +110,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Call this when navigating between pages
     updateActiveNav();
 });
 
-// Simple analytics (optional)
+// Optional: Simple analytics for tracking page views (localStorage only)
 class SimpleAnalytics {
     constructor() {
         this.storageKey = 'dg_analytics';
@@ -236,7 +209,7 @@ class SimpleAnalytics {
     }
 }
 
-// Initialize simple analytics
+// Initialize simple analytics (optional)
 const analytics = new SimpleAnalytics();
 
 // Make stats available for debugging
@@ -244,11 +217,14 @@ window.getAnalyticsStats = function() {
     return analytics.getStats();
 };
 
-// Reset function for testing
-window.resetVisitorCount = function() {
-    localStorage.removeItem('totalVisitCount');
-    localStorage.removeItem('countedSessions');
-    sessionStorage.clear();
-    console.log('Visitor count reset');
-    location.reload();
+// Utility function to clear analytics (for testing)
+window.clearAnalytics = function() {
+    localStorage.removeItem('dg_analytics');
+    localStorage.removeItem('dg_visitor_id');
+    console.log('Analytics cleared');
 };
+
+// Export for module systems (if needed)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { SimpleAnalytics };
+}
