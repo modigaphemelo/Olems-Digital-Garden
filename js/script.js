@@ -24,32 +24,101 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Simple visitor counter (GitHub Pages compatible)
+    // Improved visitor counter for GitHub Pages
     function initVisitorCounter() {
         const counterElement = document.getElementById('visitorCount');
         if (!counterElement) return;
 
-        let visitCount = parseInt(localStorage.getItem('visitCount') || '0');
-        let uniqueVisit = !localStorage.getItem('hasVisited');
-        
-        if (uniqueVisit) {
-            visitCount++;
-            localStorage.setItem('visitCount', visitCount.toString());
-            localStorage.setItem('hasVisited', 'true');
+        try {
+            // Use sessionStorage for current session and localStorage for persistence
+            let sessionCount = sessionStorage.getItem('sessionVisitCount') || '0';
+            let totalCount = localStorage.getItem('totalVisitCount') || '0';
             
-            // Log new visit (for debugging)
-            console.log('New visitor! Total visits:', visitCount);
+            // Check if this is a new session
+            if (!sessionStorage.getItem('sessionStarted')) {
+                sessionCount = '0';
+                sessionStorage.setItem('sessionStarted', 'true');
+            }
+            
+            // Increment counts
+            sessionCount = parseInt(sessionCount) + 1;
+            totalCount = parseInt(totalCount) + 1;
+            
+            // Store updated counts
+            sessionStorage.setItem('sessionVisitCount', sessionCount.toString());
+            localStorage.setItem('totalVisitCount', totalCount.toString());
+            
+            // Display total count (you can change this to sessionCount if preferred)
+            counterElement.textContent = totalCount.toLocaleString();
+            
+            console.log('Visitor count updated - Session:', sessionCount, 'Total:', totalCount);
+            
+        } catch (error) {
+            console.warn('Visitor counter error:', error);
+            counterElement.textContent = '∞'; // Fallback display
         }
-        
-        counterElement.textContent = visitCount.toLocaleString();
-        
-        // Optional: Log current stats
-        console.log('Current visitor count:', visitCount);
+    }
+
+    // Alternative simpler counter (uncomment if above doesn't work)
+    function initSimpleCounter() {
+        const counterElement = document.getElementById('visitorCount');
+        if (!counterElement) return;
+
+        try {
+            let count = localStorage.getItem('simpleVisitCount') || '0';
+            count = parseInt(count) + 1;
+            localStorage.setItem('simpleVisitCount', count.toString());
+            counterElement.textContent = count.toLocaleString();
+        } catch (error) {
+            counterElement.textContent = '1000+'; // Generic fallback
+        }
+    }
+
+    // Cookie-based counter as backup
+    function initCookieCounter() {
+        const counterElement = document.getElementById('visitorCount');
+        if (!counterElement) return;
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+        }
+
+        try {
+            let count = getCookie('cookieVisitCount');
+            if (!count) {
+                count = '0';
+            }
+            count = parseInt(count) + 1;
+            setCookie('cookieVisitCount', count.toString(), 365); // Store for 1 year
+            counterElement.textContent = count.toLocaleString();
+        } catch (error) {
+            console.warn('Cookie counter failed:', error);
+        }
     }
 
     // Initialize all functions
     updateLastUpdated();
-    initVisitorCounter();
+    
+    // Try multiple counter methods
+    initVisitorCounter(); // Primary method
+    
+    // Fallback: If counter still shows 0 after 2 seconds, try alternative
+    setTimeout(() => {
+        const currentCount = document.getElementById('visitorCount')?.textContent;
+        if (currentCount === '0' || !currentCount) {
+            console.log('Primary counter failed, trying fallback...');
+            initSimpleCounter();
+        }
+    }, 2000);
 
     // Close sidebar when clicking on main content on mobile
     const mainContent = document.getElementById('mainContent');
@@ -114,21 +183,30 @@ document.addEventListener('DOMContentLoaded', function() {
     updateActiveNav();
 });
 
-// Optional: Simple analytics for tracking page views (localStorage only)
+// Enhanced analytics for GitHub Pages
 class SimpleAnalytics {
     constructor() {
         this.storageKey = 'dg_analytics';
         this.visitorId = this.getOrCreateVisitorId();
+        this.sessionId = this.generateSessionId();
         this.init();
     }
 
+    generateSessionId() {
+        return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
     getOrCreateVisitorId() {
-        let vid = localStorage.getItem('dg_visitor_id');
-        if (!vid) {
-            vid = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('dg_visitor_id', vid);
+        try {
+            let vid = localStorage.getItem('dg_visitor_id');
+            if (!vid) {
+                vid = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('dg_visitor_id', vid);
+            }
+            return vid;
+        } catch (error) {
+            return 'anonymous_visitor';
         }
-        return vid;
     }
 
     init() {
@@ -137,28 +215,40 @@ class SimpleAnalytics {
     }
 
     trackPageView() {
-        const pageData = {
-            type: 'pageview',
-            visitorId: this.visitorId,
-            page: window.location.pathname,
-            title: document.title,
-            timestamp: new Date().toISOString(),
-            referrer: document.referrer
-        };
+        try {
+            const pageData = {
+                type: 'pageview',
+                visitorId: this.visitorId,
+                sessionId: this.sessionId,
+                page: window.location.pathname,
+                title: document.title,
+                timestamp: new Date().toISOString(),
+                referrer: document.referrer,
+                userAgent: navigator.userAgent
+            };
 
-        this.saveEvent(pageData);
+            this.saveEvent(pageData);
+            console.log('Pageview tracked:', pageData);
+        } catch (error) {
+            console.warn('Failed to track pageview:', error);
+        }
     }
 
     trackEvent(eventName, properties = {}) {
-        const eventData = {
-            type: 'event',
-            visitorId: this.visitorId,
-            event: eventName,
-            properties: properties,
-            timestamp: new Date().toISOString()
-        };
+        try {
+            const eventData = {
+                type: 'event',
+                visitorId: this.visitorId,
+                sessionId: this.sessionId,
+                event: eventName,
+                properties: properties,
+                timestamp: new Date().toISOString()
+            };
 
-        this.saveEvent(eventData);
+            this.saveEvent(eventData);
+        } catch (error) {
+            console.warn('Failed to track event:', error);
+        }
     }
 
     setupEventTracking() {
@@ -189,27 +279,35 @@ class SimpleAnalytics {
         try {
             const events = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
             events.push(eventData);
-            // Keep only last 200 events to prevent storage overflow
-            localStorage.setItem(this.storageKey, JSON.stringify(events.slice(-200)));
+            // Keep only last 500 events to prevent storage overflow
+            localStorage.setItem(this.storageKey, JSON.stringify(events.slice(-500)));
         } catch (e) {
             console.warn('Could not save analytics event:', e);
         }
     }
 
     getStats() {
-        const events = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
-        const pageviews = events.filter(e => e.type === 'pageview');
-        const uniqueVisitors = new Set(events.map(e => e.visitorId)).size;
-        
-        return {
-            totalPageViews: pageviews.length,
-            uniqueVisitors: uniqueVisitors,
-            recentActivity: events.slice(-5)
-        };
+        try {
+            const events = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+            const pageviews = events.filter(e => e.type === 'pageview');
+            const uniqueVisitors = new Set(events.map(e => e.visitorId)).size;
+            
+            return {
+                totalPageViews: pageviews.length,
+                uniqueVisitors: uniqueVisitors,
+                recentActivity: events.slice(-5)
+            };
+        } catch (error) {
+            return {
+                totalPageViews: 0,
+                uniqueVisitors: 0,
+                recentActivity: []
+            };
+        }
     }
 }
 
-// Initialize simple analytics (optional)
+// Initialize enhanced analytics
 const analytics = new SimpleAnalytics();
 
 // Make stats available for debugging
@@ -217,11 +315,18 @@ window.getAnalyticsStats = function() {
     return analytics.getStats();
 };
 
-// Utility function to clear analytics (for testing)
+// Enhanced clear function
 window.clearAnalytics = function() {
-    localStorage.removeItem('dg_analytics');
-    localStorage.removeItem('dg_visitor_id');
-    console.log('Analytics cleared');
+    try {
+        localStorage.removeItem('dg_analytics');
+        localStorage.removeItem('dg_visitor_id');
+        localStorage.removeItem('totalVisitCount');
+        localStorage.removeItem('simpleVisitCount');
+        sessionStorage.clear();
+        console.log('All analytics and counters cleared');
+    } catch (error) {
+        console.error('Error clearing analytics:', error);
+    }
 };
 
 // Export for module systems (if needed)
