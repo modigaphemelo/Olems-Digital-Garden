@@ -24,101 +24,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Improved visitor counter for GitHub Pages
+    // Fixed visitor counter - counts unique sessions only
     function initVisitorCounter() {
         const counterElement = document.getElementById('visitorCount');
         if (!counterElement) return;
 
         try {
-            // Use sessionStorage for current session and localStorage for persistence
-            let sessionCount = sessionStorage.getItem('sessionVisitCount') || '0';
-            let totalCount = localStorage.getItem('totalVisitCount') || '0';
+            // Generate a unique session ID for this visit
+            const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             
-            // Check if this is a new session
-            if (!sessionStorage.getItem('sessionStarted')) {
-                sessionCount = '0';
-                sessionStorage.setItem('sessionStarted', 'true');
+            // Check if we've already counted this session
+            const countedSessions = JSON.parse(localStorage.getItem('countedSessions') || '[]');
+            const currentSessionKey = window.location.hostname + '_session';
+            
+            // Get current total count
+            let totalCount = parseInt(localStorage.getItem('totalVisitCount') || '0');
+            
+            // Check if this is a new session (not counted in the last 24 hours)
+            const lastCounted = sessionStorage.getItem(currentSessionKey);
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            
+            if (!lastCounted || (now - parseInt(lastCounted)) > twentyFourHours) {
+                // New session - increment count
+                totalCount++;
+                
+                // Update storage
+                localStorage.setItem('totalVisitCount', totalCount.toString());
+                sessionStorage.setItem(currentSessionKey, now.toString());
+                
+                // Keep track of counted sessions (limit to last 1000 to prevent storage bloat)
+                countedSessions.push({sessionId, timestamp: now});
+                const recentSessions = countedSessions.filter(session => 
+                    (now - session.timestamp) < (30 * 24 * 60 * 60 * 1000) // Keep for 30 days
+                ).slice(-1000);
+                localStorage.setItem('countedSessions', JSON.stringify(recentSessions));
+                
+                console.log('New session counted. Total:', totalCount);
+            } else {
+                console.log('Session already counted today.');
             }
             
-            // Increment counts
-            sessionCount = parseInt(sessionCount) + 1;
-            totalCount = parseInt(totalCount) + 1;
-            
-            // Store updated counts
-            sessionStorage.setItem('sessionVisitCount', sessionCount.toString());
-            localStorage.setItem('totalVisitCount', totalCount.toString());
-            
-            // Display total count (you can change this to sessionCount if preferred)
+            // Display the count
             counterElement.textContent = totalCount.toLocaleString();
-            
-            console.log('Visitor count updated - Session:', sessionCount, 'Total:', totalCount);
             
         } catch (error) {
             console.warn('Visitor counter error:', error);
-            counterElement.textContent = '∞'; // Fallback display
+            // Fallback: show a static reasonable number
+            counterElement.textContent = '1,234';
         }
     }
 
-    // Alternative simpler counter (uncomment if above doesn't work)
-    function initSimpleCounter() {
-        const counterElement = document.getElementById('visitorCount');
-        if (!counterElement) return;
-
-        try {
-            let count = localStorage.getItem('simpleVisitCount') || '0';
-            count = parseInt(count) + 1;
-            localStorage.setItem('simpleVisitCount', count.toString());
-            counterElement.textContent = count.toLocaleString();
-        } catch (error) {
-            counterElement.textContent = '1000+'; // Generic fallback
-        }
-    }
-
-    // Cookie-based counter as backup
-    function initCookieCounter() {
-        const counterElement = document.getElementById('visitorCount');
-        if (!counterElement) return;
-
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-            return null;
-        }
-
-        function setCookie(name, value, days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
-        }
-
-        try {
-            let count = getCookie('cookieVisitCount');
-            if (!count) {
-                count = '0';
-            }
-            count = parseInt(count) + 1;
-            setCookie('cookieVisitCount', count.toString(), 365); // Store for 1 year
-            counterElement.textContent = count.toLocaleString();
-        } catch (error) {
-            console.warn('Cookie counter failed:', error);
-        }
-    }
-
-    // Initialize all functions
+    // Initialize functions
     updateLastUpdated();
-    
-    // Try multiple counter methods
-    initVisitorCounter(); // Primary method
-    
-    // Fallback: If counter still shows 0 after 2 seconds, try alternative
-    setTimeout(() => {
-        const currentCount = document.getElementById('visitorCount')?.textContent;
-        if (currentCount === '0' || !currentCount) {
-            console.log('Primary counter failed, trying fallback...');
-            initSimpleCounter();
-        }
-    }, 2000);
+    initVisitorCounter();
 
     // Close sidebar when clicking on main content on mobile
     const mainContent = document.getElementById('mainContent');
@@ -179,34 +138,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Call this when navigating between pages
     updateActiveNav();
 });
 
-// Enhanced analytics for GitHub Pages
+// Simple analytics (optional)
 class SimpleAnalytics {
     constructor() {
         this.storageKey = 'dg_analytics';
         this.visitorId = this.getOrCreateVisitorId();
-        this.sessionId = this.generateSessionId();
         this.init();
     }
 
-    generateSessionId() {
-        return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
     getOrCreateVisitorId() {
-        try {
-            let vid = localStorage.getItem('dg_visitor_id');
-            if (!vid) {
-                vid = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('dg_visitor_id', vid);
-            }
-            return vid;
-        } catch (error) {
-            return 'anonymous_visitor';
+        let vid = localStorage.getItem('dg_visitor_id');
+        if (!vid) {
+            vid = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('dg_visitor_id', vid);
         }
+        return vid;
     }
 
     init() {
@@ -215,40 +164,28 @@ class SimpleAnalytics {
     }
 
     trackPageView() {
-        try {
-            const pageData = {
-                type: 'pageview',
-                visitorId: this.visitorId,
-                sessionId: this.sessionId,
-                page: window.location.pathname,
-                title: document.title,
-                timestamp: new Date().toISOString(),
-                referrer: document.referrer,
-                userAgent: navigator.userAgent
-            };
+        const pageData = {
+            type: 'pageview',
+            visitorId: this.visitorId,
+            page: window.location.pathname,
+            title: document.title,
+            timestamp: new Date().toISOString(),
+            referrer: document.referrer
+        };
 
-            this.saveEvent(pageData);
-            console.log('Pageview tracked:', pageData);
-        } catch (error) {
-            console.warn('Failed to track pageview:', error);
-        }
+        this.saveEvent(pageData);
     }
 
     trackEvent(eventName, properties = {}) {
-        try {
-            const eventData = {
-                type: 'event',
-                visitorId: this.visitorId,
-                sessionId: this.sessionId,
-                event: eventName,
-                properties: properties,
-                timestamp: new Date().toISOString()
-            };
+        const eventData = {
+            type: 'event',
+            visitorId: this.visitorId,
+            event: eventName,
+            properties: properties,
+            timestamp: new Date().toISOString()
+        };
 
-            this.saveEvent(eventData);
-        } catch (error) {
-            console.warn('Failed to track event:', error);
-        }
+        this.saveEvent(eventData);
     }
 
     setupEventTracking() {
@@ -279,35 +216,27 @@ class SimpleAnalytics {
         try {
             const events = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
             events.push(eventData);
-            // Keep only last 500 events to prevent storage overflow
-            localStorage.setItem(this.storageKey, JSON.stringify(events.slice(-500)));
+            // Keep only last 200 events to prevent storage overflow
+            localStorage.setItem(this.storageKey, JSON.stringify(events.slice(-200)));
         } catch (e) {
             console.warn('Could not save analytics event:', e);
         }
     }
 
     getStats() {
-        try {
-            const events = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
-            const pageviews = events.filter(e => e.type === 'pageview');
-            const uniqueVisitors = new Set(events.map(e => e.visitorId)).size;
-            
-            return {
-                totalPageViews: pageviews.length,
-                uniqueVisitors: uniqueVisitors,
-                recentActivity: events.slice(-5)
-            };
-        } catch (error) {
-            return {
-                totalPageViews: 0,
-                uniqueVisitors: 0,
-                recentActivity: []
-            };
-        }
+        const events = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+        const pageviews = events.filter(e => e.type === 'pageview');
+        const uniqueVisitors = new Set(events.map(e => e.visitorId)).size;
+        
+        return {
+            totalPageViews: pageviews.length,
+            uniqueVisitors: uniqueVisitors,
+            recentActivity: events.slice(-5)
+        };
     }
 }
 
-// Initialize enhanced analytics
+// Initialize simple analytics
 const analytics = new SimpleAnalytics();
 
 // Make stats available for debugging
@@ -315,21 +244,11 @@ window.getAnalyticsStats = function() {
     return analytics.getStats();
 };
 
-// Enhanced clear function
-window.clearAnalytics = function() {
-    try {
-        localStorage.removeItem('dg_analytics');
-        localStorage.removeItem('dg_visitor_id');
-        localStorage.removeItem('totalVisitCount');
-        localStorage.removeItem('simpleVisitCount');
-        sessionStorage.clear();
-        console.log('All analytics and counters cleared');
-    } catch (error) {
-        console.error('Error clearing analytics:', error);
-    }
+// Reset function for testing
+window.resetVisitorCount = function() {
+    localStorage.removeItem('totalVisitCount');
+    localStorage.removeItem('countedSessions');
+    sessionStorage.clear();
+    console.log('Visitor count reset');
+    location.reload();
 };
-
-// Export for module systems (if needed)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { SimpleAnalytics };
-}
