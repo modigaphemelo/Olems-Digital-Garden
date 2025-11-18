@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found | 404 Error</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/olem.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 5s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 800px;
+            z-index: 1;
+        }
+
+        .error-code {
+            font-size: 10rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #f1f5f9;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .error-message {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #6366f1;
+            text-align: left;
+            backdrop-filter: blur(10px);
+        }
+
+        .error-message p {
+            margin-bottom: 1rem;
+            color: #e2e8f0;
+        }
+
+        .error-message i {
+            color: #f59e0b;
+            margin-right: 0.5rem;
+        }
+
+        .navigation {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-size: 1rem;
+        }
+
+        .nav-btn.primary {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+
+        .nav-btn.primary:hover {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-btn.secondary {
+            background: transparent;
+            color: #6366f1;
+            border-color: #6366f1;
+        }
+
+        .nav-btn.secondary:hover {
+            background: #6366f1;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .search-box {
+            display: flex;
+            max-width: 500px;
+            margin: 0 auto 2rem;
+        }
+
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        .floating-element:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            animation-duration: 20s;
+        }
+
+        .floating-element:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            animation-duration: 25s;
+        }
+
+        .floating-element:nth-child(3) {
+            bottom: 15%;
+            left: 20%;
+            animation-duration: 18s;
+        }
+
+        .floating-element:nth-child(4) {
+            bottom: 25%;
+            right: 10%;
+            animation-duration: 22s;
+        }
+
+        footer {
+            margin-top: 2rem;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .social-link {
+            color: #94a3b8;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .social-link:hover {
+            color: #6366f1;
+        }
+
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 7rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-btn {
+                width: 100%;
+                max-width: 250px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <div class="floating-elements">
+        <div class="floating-element">
+            <i class="fas fa-compass fa-3x"></i>
+        </div>
+        <div class="floating-element">
+            <i class="fas fa-map fa-3x"></i>
+        </div>
+        <div class="floating-element">
+            <i class="fas fa-mountain fa-3x"></i>
+        </div>
+        <div class="floating-element">
+            <i class="fas fa-globe fa-3x"></i>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="error-code">404</div>
+        <h1>Lost in the Digital Cosmos</h1>
+        <p class="subtitle">The page you're looking for seems to have drifted into the unknown.</p>
+        
+        <div class="error-message">
+            <p><i class="fas fa-exclamation-circle"></i> This might have happened because the page has not been added yet.</p>
+        </div>
+        
+        
+        <div class="navigation">
+            <a href="../../index.html" class="nav-btn primary">
+                <i class="fas fa-home"></i>
+                Back to Home
+            </a>
+        </div>
+        
+        <footer>
+            <p>Still lost? Try navigating from our main spheres:</p>
+            <div class="social-links">
+                <a href="/spheres/foundational/index.html" class="social-link" title="Foundational">
+                    <i class="fas fa-seedling"></i>
+                </a>
+                <a href="/spheres/academic/index.html" class="social-link" title="Academic">
+                    <i class="fas fa-graduation-cap"></i>
+                </a>
+                <a href="/spheres/outer-world/index.html" class="social-link" title="Outer World">
+                    <i class="fas fa-rocket"></i>
+                </a>
+                <a href="/spheres/professional/index.html" class="social-link" title="Professional">
+                    <i class="fas fa-briefcase"></i>
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Create twinkling stars
+        const starsContainer = document.getElementById('stars');
+        const starCount = 150;
+        
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            
+            // Random position
+            const left = Math.random() * 100;
+            const top = Math.random() * 100;
+            
+            // Random size
+            const size = Math.random() * 3;
+            
+            // Random animation delay
+            const delay = Math.random() * 5;
+            
+            star.style.left = `${left}%`;
+            star.style.top = `${top}%`;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.animationDelay = `${delay}s`;
+            
+            starsContainer.appendChild(star);
+        }
+                
+        // Add some interactive elements
+        document.querySelector('.error-code').addEventListener('mouseover', function() {
+            this.style.animation = 'pulse 0.5s infinite alternate';
+        });
+        
+        document.querySelector('.error-code').addEventListener('mouseout', function() {
+            this.style.animation = 'pulse 2s infinite alternate';
+        });
+    </script>
+</body>
+</html>

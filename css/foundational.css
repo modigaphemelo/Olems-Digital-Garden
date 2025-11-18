@@ -1,0 +1,12 @@
+/* Foundational Sphere */
+:root {
+    --primary-color: #f59e0b;
+    --primary-dark: #d97706;
+    --primary-light: #fbbf24;
+    --secondary-color: #ea580c;
+    --accent-color: #dc2626;
+    --accent-secondary: #059669;
+    --card-bg: #334155;
+    --card-hover: #7c2d12;
+    --sidebar-border: #d97706;
+}
