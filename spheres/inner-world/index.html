@@ -116,7 +116,7 @@
                                     <div class="subtopic">
                                         <a href="series/future-improved-series/future-improved-series.html" class="subtopic-link">
                                             The Future Can Be Improved Series
-                                            <i class="fas fa-arrow-right"></i>
+                                            <i class="fas fa-external-link-alt"></i>
                                         </a>
                                     </div>
                                     <div class="subtopic">Vision Crafting & Legacy Building</div>
@@ -183,7 +183,7 @@
                                     <div class="subtopic">
                                         <a href="series/selective-focus-series/selective-focus-series.html" class="subtopic-link">
                                             Selective Focus & Ignorance Series
-                                            <i class="fas fa-arrow-right"></i>
+                                            <i class="fas fa-external-link-alt"></i>
                                         </a>
                                     </div>
                                     <div class="subtopic">Cognitive Biases & Critical Thinking</div>
@@ -197,17 +197,21 @@
                                     <div class="subtopic">
                                         <a href="series/will-to-stupidity-series/will-to-stupidity-series.html" class="subtopic-link">
                                             The Will to Stupidity Series
-                                            <i class="fas fa-arrow-right"></i>
+                                            <i class="fas fa-external-link-alt"></i>
                                         </a>
                                     </div>
                                     <div class="subtopic">
                                         <a href="series/free-spirit-vs-will-stupidity/free-spirit-vs-will-stupidity.html" class="subtopic-link">
                                             Free-Spirit vs Will to Stupidity Series
-                                            <i class="fas fa-arrow-right"></i>
+                                            <i class="fas fa-external-link-alt"></i>
                                         </a>
                                     </div>
-                                    <div class="subtopic">Existential Philosophy</div>
-                                    <div class="subtopic">Stoic Principles</div>
+                                    <div class="subtopic">
+                                        <a href="series/hesitation-is-defeat-series/hesitation-is-defeat-series.html" class="subtopic-link">
+                                            Hesitation is Defeat Series
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    </div>
                                 </div>
                             </li>
                         </div>
@@ -307,5 +311,51 @@
             </section>
         </main>
     </div>
+        <script>
+        // Mobile sidebar toggle
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            
+            if (window.innerWidth <= 768 && 
+                sidebar.classList.contains('active') && 
+                !sidebar.contains(event.target) && 
+                !toggle.contains(event.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        // Add fade-in animation to elements as they come into view
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all fade-in elements
+        document.addEventListener('DOMContentLoaded', function() {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(el);
+            });
+        });
+    </script>
 </body>
 </html>
